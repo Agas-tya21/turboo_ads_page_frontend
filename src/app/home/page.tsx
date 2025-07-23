@@ -14,12 +14,12 @@ import FloatingActionBar from './components/FloatingActionBar';
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#F8F9FA] font-sans">
-      <TopBar />
+      {/* <TopBar /> */}
       <Header />
       <Hero />
       <CompanyInfo />
       <Products />
-      <PromoSection />
+      {/* <PromoSection /> */}
       <HowToApply />
       <InspiringInfo />
       <Locations />

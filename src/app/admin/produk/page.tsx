@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, FormEvent } from 'react';
-import Link from 'next/link';
 import apiConfig from '@/config/api';
 
 // Tipe data untuk Produk
@@ -28,6 +27,7 @@ const ProdukAdminPage = () => {
   const [selectedProduk, setSelectedProduk] = useState<Produk | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Fungsi untuk mengambil semua data produk
@@ -37,13 +37,12 @@ const ProdukAdminPage = () => {
     try {
       const response = await fetch(`${apiConfig.baseURL}/produk`);
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Gagal mengambil data produk' }));
-        throw new Error(errorData.message || 'Gagal mengambil data');
+        throw new Error('Gagal mengambil data produk');
       }
       const data = await response.json();
       setProdukList(data);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan yang tidak diketahui');
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
     } finally {
       setIsLoading(false);
     }
@@ -53,70 +52,49 @@ const ProdukAdminPage = () => {
     fetchProduk();
   }, []);
 
-  // Fungsi untuk mengunggah file
-  const uploadFile = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await fetch(`${apiConfig.baseURL}/upload`, {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error('Gagal mengunggah gambar. Pastikan backend berjalan dan IP address benar.');
-    }
-
-    const result = await response.json();
-    return result.url;
-  };
-
+  // Fungsi untuk menangani submit form (Create & Update)
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsSubmitting(true);
     setError(null);
-    const formData = new FormData(e.currentTarget);
-    const formElement = e.currentTarget;
+    const form = e.currentTarget;
+
+    const formData = new FormData();
+    const produkData = {
+      idproduk: (form.elements.namedItem('idproduk') as HTMLInputElement).value,
+      namaproduk: (form.elements.namedItem('namaproduk') as HTMLInputElement).value,
+      keteranganproduk: (form.elements.namedItem('keteranganproduk') as HTMLTextAreaElement).value,
+      gambarproduk: selectedProduk?.gambarproduk || null,
+    };
     
-    let imageUrl = selectedProduk?.gambarproduk || '';
+    formData.append('produk', new Blob([JSON.stringify(produkData)], { type: 'application/json' }));
 
     if (selectedFile) {
-      try {
-        imageUrl = await uploadFile(selectedFile);
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Gagal mengunggah file');
-        return;
-      }
+        formData.append('file', selectedFile);
     }
-
-    const produkData = {
-      idproduk: formData.get('idproduk') as string,
-      namaproduk: formData.get('namaproduk') as string,
-      keteranganproduk: formData.get('keteranganproduk') as string,
-      gambarproduk: imageUrl,
-    };
-
-    const url = selectedProduk
-      ? `${apiConfig.baseURL}/produk/${selectedProduk.idproduk}`
-      : `${apiConfig.baseURL}/produk`;
-    const method = selectedProduk ? 'PUT' : 'POST';
+    
+    const isUpdating = !!selectedProduk;
+    const url = isUpdating ? `${apiConfig.baseURL}/produk/${selectedProduk.idproduk}` : `${apiConfig.baseURL}/produk`;
+    const method = isUpdating ? 'PUT' : 'POST';
 
     try {
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(produkData),
-      });
-      if (!response.ok) throw new Error('Gagal menyimpan data produk');
+      const response = await fetch(url, { method, body: formData });
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({ message: 'Gagal menyimpan data.' }));
+        throw new Error(errorBody.message);
+      }
       
-      formElement.reset();
+      form.reset();
       setSelectedProduk(null);
       setSelectedFile(null);
       fetchProduk();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Gagal menyimpan data');
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat menyimpan');
+    } finally {
+      setIsSubmitting(false);
     }
   };
-
+  
   const handleDelete = async (id: string) => {
     if (!confirm('Apakah Anda yakin ingin menghapus produk ini?')) return;
     try {
@@ -127,39 +105,48 @@ const ProdukAdminPage = () => {
       setError(err instanceof Error ? err.message : 'Gagal menghapus data');
     }
   };
+  
+  const clearForm = () => {
+    setSelectedProduk(null);
+    setSelectedFile(null);
+    const form = document.querySelector('form');
+    if (form) form.reset();
+  }
 
   return (
     <div className="container mx-auto p-8 font-sans">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Admin - Kelola Produk</h1>
-        <Link href="/admin" className="px-4 py-2 bg-gray-500 text-white font-semibold rounded-lg shadow-md hover:bg-gray-600">
-          &larr; Kelola Cabang
-        </Link>
-      </div>
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">Kelola Produk</h1>
 
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6">
+          <span className="block sm:inline">{error}</span>
+        </div>
+      )}
+
+      {/* Form */}
       <div className="bg-white p-6 rounded-lg shadow-md mb-8">
         <h2 className="text-2xl font-semibold mb-4">{selectedProduk ? 'Edit Produk' : 'Tambah Produk Baru'}</h2>
         <form onSubmit={handleSubmit} className="space-y-4" key={selectedProduk?.idproduk || 'new-produk-form'}>
           <div>
             <label htmlFor="idproduk" className="block text-sm font-medium text-gray-700">ID Produk</label>
-            <input type="text" name="idproduk" defaultValue={selectedProduk?.idproduk || ''} disabled={!!selectedProduk} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100" required />
+            <input type="text" name="idproduk" defaultValue={selectedProduk?.idproduk || ''} disabled={!!selectedProduk} className="mt-1 block w-full input-style" required />
           </div>
           <div>
             <label htmlFor="namaproduk" className="block text-sm font-medium text-gray-700">Nama Produk</label>
-            <input type="text" name="namaproduk" defaultValue={selectedProduk?.namaproduk || ''} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required />
+            <input type="text" name="namaproduk" defaultValue={selectedProduk?.namaproduk || ''} className="mt-1 block w-full input-style" required />
           </div>
           <div>
             <label htmlFor="keteranganproduk" className="block text-sm font-medium text-gray-700">Keterangan</label>
-            <textarea name="keteranganproduk" defaultValue={selectedProduk?.keteranganproduk || ''} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" rows={3}></textarea>
+            <textarea name="keteranganproduk" defaultValue={selectedProduk?.keteranganproduk || ''} className="mt-1 block w-full input-style" rows={3}></textarea>
           </div>
           <div>
-            <label htmlFor="gambarproduk" className="block text-sm font-medium text-gray-700">Unggah Gambar</label>
+            <label htmlFor="file" className="block text-sm font-medium text-gray-700">Unggah Gambar</label>
             <input 
               type="file" 
-              name="gambarproduk" 
+              name="file" 
               accept="image/*"
               onChange={(e) => e.target.files && setSelectedFile(e.target.files[0])} 
-              className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
+              className="mt-1 block w-full file-input-style" 
             />
             {(selectedFile || (selectedProduk && isValidUrl(selectedProduk.gambarproduk))) && (
               <div className="mt-4">
@@ -173,49 +160,50 @@ const ProdukAdminPage = () => {
             )}
           </div>
           <div className="flex items-center gap-4">
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700">{selectedProduk ? 'Update' : 'Simpan'}</button>
-            {selectedProduk && <button type="button" onClick={() => { setSelectedProduk(null); setSelectedFile(null); }} className="px-4 py-2 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400">Batal</button>}
+            <button type="submit" disabled={isSubmitting} className="btn-primary">
+              {isSubmitting ? 'Menyimpan...' : (selectedProduk ? 'Update' : 'Simpan')}
+            </button>
+            {selectedProduk && <button type="button" onClick={clearForm} className="btn-secondary">Batal</button>}
           </div>
         </form>
       </div>
 
+      {/* Tabel */}
       <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-semibold mb-4">Daftar Produk</h2>
-        {isLoading && <p>Loading...</p>}
-        {error && <p className="text-red-500">Error: {error}</p>}
-        {!isLoading && !error && (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gambar</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {produkList.map((produk) => (
-                  <tr key={produk.idproduk}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{produk.idproduk}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{produk.namaproduk}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {isValidUrl(produk.gambarproduk) ? (
-                        <img src={produk.gambarproduk} alt={produk.namaproduk} className="w-16 h-16 object-cover rounded" />
-                      ) : (
-                        <span className="text-xs text-gray-500">URL tidak valid</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-4">
-                      <button onClick={() => { setSelectedProduk(produk); setSelectedFile(null); }} className="text-blue-600 hover:text-blue-900">Edit</button>
-                      <button onClick={() => handleDelete(produk.idproduk)} className="text-red-600 hover:text-red-900">Hapus</button>
-                    </td>
+         <h2 className="text-2xl font-semibold mb-4">Daftar Produk</h2>
+         {isLoading ? <p>Loading...</p> : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="th-style">ID</th>
+                    <th className="th-style">Nama</th>
+                    <th className="th-style">Gambar</th>
+                    <th className="th-style">Aksi</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {produkList.map((produk) => (
+                    <tr key={produk.idproduk}>
+                      <td className="td-style">{produk.idproduk}</td>
+                      <td className="td-style">{produk.namaproduk}</td>
+                      <td className="td-style">
+                        {isValidUrl(produk.gambarproduk) ? (
+                          <img src={produk.gambarproduk} alt={produk.namaproduk} className="w-16 h-16 object-cover rounded" />
+                        ) : (
+                          <span className="text-xs text-gray-500">Tidak ada gambar</span>
+                        )}
+                      </td>
+                      <td className="td-style space-x-2">
+                        <button onClick={() => { setSelectedProduk(produk); setSelectedFile(null); window.scrollTo(0,0); }} className="text-blue-600 hover:underline">Edit</button>
+                        <button onClick={() => handleDelete(produk.idproduk)} className="text-red-600 hover:underline">Hapus</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+         )}
       </div>
     </div>
   );
