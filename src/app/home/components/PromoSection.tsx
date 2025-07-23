@@ -44,7 +44,7 @@ const PromoSection = () => (
         <div className="absolute bottom-4 left-8 md:left-12 font-bold text-lg z-10">#SelaluAdaJalan</div>
         <div className="absolute top-4 right-8 md:right-12 z-10">
             <div className="font-extrabold text-2xl border-2 border-white px-3 py-1">
-                BFI <span className="font-light">FINANCE</span>
+                Turboo <span className="font-light"></span>
             </div>
         </div>
       </div>

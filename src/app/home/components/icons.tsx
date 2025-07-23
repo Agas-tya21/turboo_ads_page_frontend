@@ -1,5 +1,6 @@
 import React from 'react';
 
+// ... (kode ChevronDownIcon dan ikon lainnya tetap sama) ...
 export const ChevronDownIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -43,8 +44,14 @@ export const LiveChatIcon = () => (
     </svg>
 );
 
-export const SocialIcon = ({ children, href }: { children: React.ReactNode, href: string }) => (
-    <a href={href} className="bg-gray-700 p-2 rounded-md hover:bg-gray-600 transition-colors">
+// Tipe props baru untuk SocialIcon, mewarisi semua atribut dari <a> HTML
+interface SocialIconProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+    children: React.ReactNode;
+}
+
+// Komponen yang diperbarui untuk menerima semua props <a>
+export const SocialIcon = ({ children, ...rest }: SocialIconProps) => (
+    <a {...rest} className="bg-gray-700 p-2 rounded-md hover:bg-gray-600 transition-colors">
         {children}
     </a>
 );
