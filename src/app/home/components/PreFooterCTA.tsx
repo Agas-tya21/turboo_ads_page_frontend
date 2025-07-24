@@ -3,7 +3,7 @@ import React from 'react';
 const BFI_ORANGE = "#F7941D";
 
 const PreFooterCTA = () => (
-  <section className="bg-[#003d7a] py-12">
+  <section className="bg-[#FE0000] py-12">
       <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-white text-center md:text-left">
           <h2 className="text-3xl font-bold mb-6 md:mb-0 md:max-w-2xl">Nikmati proses pencairan cepat dengan melengkapi persyaratan yang ada</h2>
           <div className="flex flex-col gap-4 w-full sm:w-auto sm:min-w-[250px]">

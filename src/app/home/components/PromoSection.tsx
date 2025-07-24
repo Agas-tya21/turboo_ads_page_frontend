@@ -1,11 +1,12 @@
 import React from 'react';
 
+const BFI_BLUE = "#FE0000";
 const PromoSection = () => (
   <section className="py-20 bg-[#F8F9FA]">
     <div className="container mx-auto px-6">
       <h2 className="text-xl font-semibold text-gray-800 mb-6">Promo Spesial dan Informasi Bulan Ini</h2>
       <div className="relative rounded-2xl text-white p-8 md:p-12 bg-gradient-to-r from-[#003d7a] to-[#005a9c] overflow-hidden">
-        <div className="grid md:grid-cols-2 gap-8 items-center">
+        <div className="grid md:grid-cols-2 gap-8 items-center"style={{ color: BFI_BLUE }}>
           {/* Text Content */}
           <div className="flex flex-col gap-4 z-10">
             <h3 className="text-4xl lg:text-5xl font-extrabold tracking-tight">

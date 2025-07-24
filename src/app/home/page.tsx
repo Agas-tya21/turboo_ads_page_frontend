@@ -25,7 +25,7 @@ export default function Home() {
       <Locations />
       <PreFooterCTA />
       <Footer />
-      <FloatingActionBar />
+      {/* <FloatingActionBar /> */}
     </div>
   );
 }

@@ -3,7 +3,8 @@ import React from 'react';
 
 const AdminNavbar = () => {
   return (
-    <nav className="bg-gray-800 text-white shadow-lg mb-8">
+    // --- PERUBAHAN DI SINI: Ditambahkan kelas sticky, top-0, dan z-50 ---
+    <nav className="bg-gray-800 text-white shadow-lg sticky top-0 z-50">
       <div className="container mx-auto px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo / Brand */}
@@ -23,6 +24,9 @@ const AdminNavbar = () => {
             </Link>
             <Link href="/admin/promo" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700">
               Kelola Promo
+            </Link>
+            <Link href="/admin/konsumen" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700">
+              Data Konsumen
             </Link>
           </div>
 

@@ -14,7 +14,7 @@ interface Promo {
   tglmulai: string;
   tglakhir: string;
 }
-
+const BFI_BLUE = "#FE0000";
 const InspiringInfo = () => {
   const [promosKelas1, setPromosKelas1] = useState<Promo[]>([]);
   const [promosKelas2, setPromosKelas2] = useState<Promo[]>([]);
@@ -56,7 +56,7 @@ const InspiringInfo = () => {
   return (
     <section className="py-20 bg-white">
       <div className="container mx-auto px-6">
-        <h2 className="text-2xl font-semibold text-blue-800 text-center mb-8">
+        <h2 className="text-2xl font-semibold text-blue-800 text-center mb-8" style={{ color: BFI_BLUE }}>
           Promo dan Informasi Inspiratif untuk Kehidupan Finansial Anda
         </h2>
 

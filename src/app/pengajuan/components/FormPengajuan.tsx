@@ -3,13 +3,20 @@
 import React, { FormEvent, useState, useEffect } from 'react';
 import apiConfig from '@/config/api';
 
-// Tipe data untuk Produk
+// Tipe data
 interface Produk {
   idproduk: string;
   namaproduk: string;
 }
 
-// State untuk menyimpan file yang dipilih
+interface Promo {
+  idpromo: string;
+  namapromo: string;
+  produk: Produk | null;
+  tglmulai: string;
+  tglakhir: string;
+}
+
 interface SelectedFiles {
   fotoktp: File | null;
   fotokk: File | null;
@@ -21,35 +28,61 @@ interface SelectedFiles {
 
 const FormPengajuan = () => {
   const [produkList, setProdukList] = useState<Produk[]>([]);
+  const [promoList, setPromoList] = useState<Promo[]>([]);
+  const [filteredPromoList, setFilteredPromoList] = useState<Promo[]>([]);
+  const [selectedProdukId, setSelectedProdukId] = useState<string>('');
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
   const [error, setError] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<SelectedFiles>({
-    fotoktp: null,
-    fotokk: null,
-    fotojaminan: null,
-    fotorekeninglistrik: null,
-    fotoslipgaji: null,
-    fotopelepasanaset: null,
+    fotoktp: null, fotokk: null, fotojaminan: null,
+    fotorekeninglistrik: null, fotoslipgaji: null, fotopelepasanaset: null,
   });
 
-  // --- BARU: Fetch data produk saat komponen dimuat ---
+  // Fetch data produk dan promo saat komponen dimuat
   useEffect(() => {
-    const fetchProduk = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`${apiConfig.baseURL}/produk`);
-        if (!response.ok) {
-          throw new Error('Gagal memuat daftar produk');
-        }
-        const data = await response.json();
-        setProdukList(data);
+        const [produkRes, promoRes] = await Promise.all([
+            fetch(`${apiConfig.baseURL}/produk`),
+            fetch(`${apiConfig.baseURL}/promo`)
+        ]);
+
+        if (!produkRes.ok) throw new Error('Gagal memuat daftar produk');
+        if (!promoRes.ok) throw new Error('Gagal memuat daftar promo');
+
+        const produkData = await produkRes.json();
+        const promoData = await promoRes.json();
+
+        setProdukList(produkData);
+        
+        // Filter promo yang aktif hari ini
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const activePromos = promoData.filter((p: Promo) => {
+            return today >= new Date(p.tglmulai) && today <= new Date(p.tglakhir);
+        });
+        setPromoList(activePromos);
+
       } catch (err) {
-        console.error(err);
-        // Anda bisa menampilkan error ke pengguna jika perlu
+        setError(err instanceof Error ? err.message : 'Gagal memuat data');
       }
     };
-    fetchProduk();
-  }, []); // Array kosong memastikan ini hanya berjalan sekali
+    fetchData();
+  }, []);
+
+  // Filter promo berdasarkan produk yang dipilih
+  useEffect(() => {
+    if (selectedProdukId) {
+      // Tampilkan promo yang spesifik untuk produk ini ATAU promo umum (yang tidak terikat produk)
+      const filtered = promoList.filter(p => p.produk?.idproduk === selectedProdukId || !p.produk);
+      setFilteredPromoList(filtered);
+    } else {
+      setFilteredPromoList([]);
+    }
+  }, [selectedProdukId, promoList]);
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, files } = e.target;
@@ -69,17 +102,19 @@ const FormPengajuan = () => {
         nik: {value: string},
         namalengkap: {value: string},
         notelpon: {value: string},
-        idproduk: {value: string}, // Tambahkan idproduk
+        idproduk: {value: string},
+        idpromo: {value: string},
     };
     
     const idProduk = formElements.idproduk.value;
+    const idPromo = formElements.idpromo.value;
 
     const konsumenData = {
       nik: formElements.nik.value,
       namalengkap: formElements.namalengkap.value,
       notelpon: formElements.notelpon.value,
-      // --- BARU: Sertakan produk yang dipilih ---
-      produk: idProduk ? { idproduk: idProduk } : null, 
+      produk: idProduk ? { idproduk: idProduk } : null,
+      promo: idPromo ? { idpromo: idPromo } : null,
     };
 
     const formData = new FormData();
@@ -87,7 +122,7 @@ const FormPengajuan = () => {
 
     Object.entries(selectedFiles).forEach(([key, file]) => {
       if (file) {
-        formData.append(`files`, file, key);
+        formData.append(key, file);
       }
     });
 
@@ -98,16 +133,17 @@ const FormPengajuan = () => {
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ message: 'Gagal mengirim data. Periksa kembali isian Anda.'}));
+            const errorData = await response.json().catch(() => ({ message: 'Gagal mengirim data.'}));
             throw new Error(errorData.message || 'Terjadi kesalahan pada server.');
         }
 
         setSubmitMessage('Pengajuan Anda berhasil dikirim! Tim kami akan segera menghubungi Anda.');
         form.reset();
         setSelectedFiles({ fotoktp: null, fotokk: null, fotojaminan: null, fotorekeninglistrik: null, fotoslipgaji: null, fotopelepasanaset: null });
+        setSelectedProdukId('');
 
     } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Terjadi kesalahan yang tidak diketahui.');
+        setError(err instanceof Error ? err.message : 'Gagal mengirim data.');
     } finally {
         setIsSubmitting(false);
     }
@@ -116,18 +152,13 @@ const FormPengajuan = () => {
   return (
     <div className="container mx-auto px-6 py-12">
       <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
-        <h2 className="text-3xl font-bold text-gray-800 text-center mb-2">Formulir Pengajuan Konsumen</h2>
-        <p className="text-gray-600 text-center mb-8">Lengkapi data dan unggah dokumen persyaratan.</p>
+        <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">Formulir Pengajuan Konsumen</h2>
         
         {submitMessage && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6" role="alert">
-            <span className="block sm:inline">{submitMessage}</span>
-          </div>
+          <div className="bg-green-100 border-green-400 text-green-700 px-4 py-3 rounded mb-6">{submitMessage}</div>
         )}
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
-            <span className="block sm:inline">{error}</span>
-          </div>
+          <div className="bg-red-100 border-red-400 text-red-700 px-4 py-3 rounded mb-6">{error}</div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-10">
@@ -150,18 +181,25 @@ const FormPengajuan = () => {
             </div>
           </div>
 
-          {/* --- BAGIAN JAMINAN DIPERBARUI --- */}
+          {/* Produk & Promo */}
           <div>
-            <h3 className="text-xl font-semibold text-gray-700 border-b pb-2 mb-6">2. Pilih Produk Jaminan</h3>
-             <div className="grid grid-cols-1">
+            <h3 className="text-xl font-semibold text-gray-700 border-b pb-2 mb-6">2. Pilih Produk & Promo</h3>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                <div>
                 <label htmlFor="idproduk" className="block text-sm font-medium text-gray-700">Produk Jaminan</label>
-                <select name="idproduk" id="idproduk" className="mt-1 input-style" required>
-                    <option value="">-- Pilih Produk yang Diinginkan --</option>
+                <select name="idproduk" id="idproduk" className="mt-1 input-style" required onChange={(e) => setSelectedProdukId(e.target.value)}>
+                    <option value="">-- Pilih Produk --</option>
                     {produkList.map(produk => (
-                        <option key={produk.idproduk} value={produk.idproduk}>
-                            {produk.namaproduk}
-                        </option>
+                        <option key={produk.idproduk} value={produk.idproduk}>{produk.namaproduk}</option>
+                    ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="idpromo" className="block text-sm font-medium text-gray-700">Pilih Promo</label>
+                <select name="idpromo" id="idpromo" className="mt-1 input-style" disabled={!selectedProdukId}>
+                    <option value="">-- Pilih Promo (Jika Ada) --</option>
+                    {filteredPromoList.map(promo => (
+                        <option key={promo.idpromo} value={promo.idpromo}>{promo.namapromo}</option>
                     ))}
                 </select>
               </div>
@@ -173,27 +211,27 @@ const FormPengajuan = () => {
             <h3 className="text-xl font-semibold text-gray-700 border-b pb-2 mb-6">3. Unggah Dokumen</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="fotoktp" className="block text-sm font-medium text-gray-700">Foto KTP</label>
+                <label htmlFor="fotoktp">Foto KTP</label>
                 <input type="file" name="fotoktp" id="fotoktp" onChange={handleFileChange} className="mt-1 file-input-style" />
               </div>
                <div>
-                <label htmlFor="fotokk" className="block text-sm font-medium text-gray-700">Foto Kartu Keluarga (KK)</label>
+                <label htmlFor="fotokk">Foto Kartu Keluarga (KK)</label>
                 <input type="file" name="fotokk" id="fotokk" onChange={handleFileChange} className="mt-1 file-input-style" />
               </div>
               <div>
-                <label htmlFor="fotojaminan" className="block text-sm font-medium text-gray-700">Foto Jaminan (BPKB/Sertifikat)</label>
+                <label htmlFor="fotojaminan">Foto Jaminan (BPKB/Sertifikat)</label>
                 <input type="file" name="fotojaminan" id="fotojaminan" onChange={handleFileChange} className="mt-1 file-input-style" />
               </div>
               <div>
-                <label htmlFor="fotorekeninglistrik" className="block text-sm font-medium text-gray-700">Foto Rekening Listrik</label>
+                <label htmlFor="fotorekeninglistrik">Foto Rekening Listrik</label>
                 <input type="file" name="fotorekeninglistrik" id="fotorekeninglistrik" onChange={handleFileChange} className="mt-1 file-input-style" />
               </div>
-               <div>
-                <label htmlFor="fotoslipgaji" className="block text-sm font-medium text-gray-700">Foto Slip Gaji</label>
+              <div>
+                <label htmlFor="fotoslipgaji">Foto Slip Gaji / ID Card</label>
                 <input type="file" name="fotoslipgaji" id="fotoslipgaji" onChange={handleFileChange} className="mt-1 file-input-style" />
               </div>
               <div>
-                <label htmlFor="fotopelepasanaset" className="block text-sm font-medium text-gray-700">Foto Pelepasan Aset (Jika ada)</label>
+                <label htmlFor="fotopelepasanaset">Foto Pelepasan Aset (Opsional)</label>
                 <input type="file" name="fotopelepasanaset" id="fotopelepasanaset" onChange={handleFileChange} className="mt-1 file-input-style" />
               </div>
             </div>

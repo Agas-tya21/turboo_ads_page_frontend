@@ -91,7 +91,7 @@ const Footer = () => {
                     </a>
                 </div>
             </div>
-            <div className="border-t border-gray-700 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center text-sm">
+            {/* <div className="border-t border-gray-700 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center text-sm">
                 <p className="mb-4 md:mb-0">&copy; 2025 - PT Turboo Indonesia Tbk</p>
                 <div className="flex flex-wrap justify-center gap-4">
                     <a href="#" className="hover:text-white">Karir</a>
@@ -101,7 +101,7 @@ const Footer = () => {
                     <a href="#" className="hover:text-white">Syarat & Penggunaan</a>
                     <a href="#" className="hover:text-white">Privasi</a>
                 </div>
-            </div>
+            </div> */}
         </div>
     </footer>
   );

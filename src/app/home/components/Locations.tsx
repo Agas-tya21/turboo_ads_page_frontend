@@ -1,30 +1,65 @@
-import React from 'react';
+'use client'; 
 
-const BFI_ORANGE = "#F7941D";
+import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+import apiConfig from '@/config/api';
 
-const Locations = () => (
-  <section className="py-20 bg-blue-50">
-    <div className="container mx-auto px-6 text-center">
-      <h2 className="text-4xl font-bold text-blue-800 mb-2">Turboo Memiliki Lebih dari 200 Lokasi Pelayanan Tersebar di Indonesia</h2>
-      <p className="text-lg text-gray-600 mb-8">Temukan cabang atau POS Turboo terdekat dengan Anda</p>
-      
-      <div className="relative mb-8 p-4">
-        {/* Ganti src dengan path gambar peta Anda */}
-        <img src="https://www.bfi.co.id/themes/bfi/assets/images/home/bfi-map-2022.png" alt="Peta Lokasi Turboo di Indonesia" className="w-full max-w-4xl mx-auto h-auto object-contain"/>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-           <a href="#" style={{ backgroundColor: BFI_ORANGE }} className="text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:opacity-90 transition-opacity">
-             Temukan disini &gt;
-           </a>
+const BFI_BLUE = "#FE0000";
+// Tipe data untuk cabang
+interface Cabang {
+  idcabang: string;
+  namacabang: string;
+  koordinatcabang: string;
+}
+
+const Locations = () => {
+  const [cabangList, setCabangList] = useState<Cabang[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load komponen Map secara dinamis untuk menghindari masalah SSR
+  const Map = dynamic(() => import('./Map'), { 
+    ssr: false,
+    loading: () => <p className="text-center">Memuat peta...</p> 
+  });
+
+
+  useEffect(() => {
+    const fetchCabang = async () => {
+      try {
+        const response = await fetch(`${apiConfig.baseURL}/cabang`);
+        if (!response.ok) {
+          throw new Error('Gagal mengambil data cabang');
+        }
+        const data = await response.json();
+        setCabangList(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchCabang();
+  }, []);
+
+  return (
+    <section className="py-20 bg-50" style={{ color: BFI_BLUE }}>
+      <div className="container mx-auto px-6 text-center">
+        <h2 className="text-4xl font-bold text-blue-800 mb-2" style={{ color: BFI_BLUE }}>Turboo Memiliki Lebih dari {cabangList.length > 0 ? cabangList.length : '...'} Lokasi Pelayanan Tersebar di Indonesia</h2>
+        <p className="text-lg text-gray-600 mb-8">Temukan cabang atau POS Turboo terdekat dengan Anda</p>
+        
+        {/* --- PERUBAHAN UTAMA DI SINI --- */}
+        <div className="relative mb-8 p-4 h-[500px]">
+          {!isLoading && <Map cabangList={cabangList} />}
         </div>
+        
+        <p className="text-gray-600 text-sm leading-relaxed">
+          Jam operasional semua cabang Turboo:<br/>
+          Senin - Jumat 09.00 - 17.00 WIB<br/>
+          Sabtu 09.00 - 15.00 WIB
+        </p>
       </div>
-      
-      <p className="text-gray-600 text-sm leading-relaxed">
-        Jam operasional semua cabang Turboo:<br/>
-        Senin - Jumat 08.15 - 16.30 WIB<br/>
-        Sabtu 08.00 - 12.00 WIB
-      </p>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 export default Locations;
