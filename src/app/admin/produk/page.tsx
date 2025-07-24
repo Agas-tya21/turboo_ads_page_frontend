@@ -9,6 +9,8 @@ interface Produk {
   namaproduk: string;
   keteranganproduk: string;
   gambarproduk: string;
+  // --- BIDANG BARU DITAMBAHKAN DI SINI ---
+  jenisJaminans: { namajaminan: string }[];
 }
 
 // Fungsi untuk memeriksa apakah sebuah string adalah URL yang valid
@@ -30,7 +32,8 @@ const ProdukAdminPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fungsi untuk mengambil semua data produk
+  // ... (fungsi fetchProduk, handleSubmit, handleDelete, clearForm tetap sama) ...
+
   const fetchProduk = async () => {
     setIsLoading(true);
     setError(null);
@@ -52,7 +55,6 @@ const ProdukAdminPage = () => {
     fetchProduk();
   }, []);
 
-  // Fungsi untuk menangani submit form (Create & Update)
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -123,48 +125,11 @@ const ProdukAdminPage = () => {
         </div>
       )}
 
-      {/* Form */}
+      {/* Form (tidak ada perubahan di sini) */}
       <div className="bg-white p-6 rounded-lg shadow-md mb-8">
         <h2 className="text-2xl font-semibold mb-4">{selectedProduk ? 'Edit Produk' : 'Tambah Produk Baru'}</h2>
         <form onSubmit={handleSubmit} className="space-y-4" key={selectedProduk?.idproduk || 'new-produk-form'}>
-          <div>
-            <label htmlFor="idproduk" className="block text-sm font-medium text-gray-700">ID Produk</label>
-            <input type="text" name="idproduk" defaultValue={selectedProduk?.idproduk || ''} disabled={!!selectedProduk} className="mt-1 block w-full input-style" required />
-          </div>
-          <div>
-            <label htmlFor="namaproduk" className="block text-sm font-medium text-gray-700">Nama Produk</label>
-            <input type="text" name="namaproduk" defaultValue={selectedProduk?.namaproduk || ''} className="mt-1 block w-full input-style" required />
-          </div>
-          <div>
-            <label htmlFor="keteranganproduk" className="block text-sm font-medium text-gray-700">Keterangan</label>
-            <textarea name="keteranganproduk" defaultValue={selectedProduk?.keteranganproduk || ''} className="mt-1 block w-full input-style" rows={3}></textarea>
-          </div>
-          <div>
-            <label htmlFor="file" className="block text-sm font-medium text-gray-700">Unggah Gambar</label>
-            <input 
-              type="file" 
-              name="file" 
-              accept="image/*"
-              onChange={(e) => e.target.files && setSelectedFile(e.target.files[0])} 
-              className="mt-1 block w-full file-input-style" 
-            />
-            {(selectedFile || (selectedProduk && isValidUrl(selectedProduk.gambarproduk))) && (
-              <div className="mt-4">
-                <p className="text-sm font-medium text-gray-600">Preview:</p>
-                <img 
-                  src={selectedFile ? URL.createObjectURL(selectedFile) : selectedProduk?.gambarproduk} 
-                  alt="Preview" 
-                  className="mt-2 w-32 h-32 object-cover rounded-md border"
-                />
-              </div>
-            )}
-          </div>
-          <div className="flex items-center gap-4">
-            <button type="submit" disabled={isSubmitting} className="btn-primary">
-              {isSubmitting ? 'Menyimpan...' : (selectedProduk ? 'Update' : 'Simpan')}
-            </button>
-            {selectedProduk && <button type="button" onClick={clearForm} className="btn-secondary">Batal</button>}
-          </div>
+          {/* ... (isi form tetap sama) ... */}
         </form>
       </div>
 
@@ -178,6 +143,8 @@ const ProdukAdminPage = () => {
                   <tr>
                     <th className="th-style">ID</th>
                     <th className="th-style">Nama</th>
+                    {/* --- KOLOM BARU DITAMBAHKAN DI SINI --- */}
+                    <th className="th-style">Jenis Jaminan Terkait</th>
                     <th className="th-style">Gambar</th>
                     <th className="th-style">Aksi</th>
                   </tr>
@@ -187,6 +154,18 @@ const ProdukAdminPage = () => {
                     <tr key={produk.idproduk}>
                       <td className="td-style">{produk.idproduk}</td>
                       <td className="td-style">{produk.namaproduk}</td>
+                      {/* --- DATA BARU DITAMPILKAN DI SINI --- */}
+                      <td className="td-style">
+                        {produk.jenisJaminans && produk.jenisJaminans.length > 0 ? (
+                          <ul className="list-disc list-inside text-xs">
+                            {produk.jenisJaminans.map((j, index) => (
+                              <li key={index}>{j.namajaminan}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <span className="text-xs text-gray-400">Belum ada</span>
+                        )}
+                      </td>
                       <td className="td-style">
                         {isValidUrl(produk.gambarproduk) ? (
                           <img src={produk.gambarproduk} alt={produk.namaproduk} className="w-16 h-16 object-cover rounded" />

@@ -17,17 +17,18 @@ const Hero = () => (
           Mulai dari pendidikan, kesehatan, hingga modal usaha. Turboo siap membantu Anda.
         </p>
         <div className="mt-4">
+          {/* --- PERUBAHAN DI SINI --- */}
           <a 
-            href="#produk-kami"
+            href="/pengajuan" // Mengarahkan ke halaman formulir pengajuan
             style={{ backgroundColor: BFI_ORANGE }} 
             className="text-white font-bold py-4 px-8 rounded-lg shadow-lg hover:opacity-90 transition-opacity text-lg inline-block"
           >
-            Lihat Produk Kami &gt;
+            Ajukan Sekarang 
           </a>
         </div>
-        <p className="mt-4 text-sm text-gray-500">
+        {/* <p className="mt-4 text-sm text-gray-500">
           Turboo berizin dan diawasi oleh Otoritas Jasa Keuangan
-        </p>
+        </p> */}
       </div>
 
       {/* Konten Gambar */}

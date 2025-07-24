@@ -21,7 +21,7 @@ export default function Home() {
       <Products />
       {/* <PromoSection /> */}
       <HowToApply />
-      <InspiringInfo />
+      {/* <InspiringInfo /> */}
       <Locations />
       <PreFooterCTA />
       <Footer />

@@ -58,7 +58,7 @@ const Products = () => {
     <section id="produk-kami" className="bg-white py-20">
       <div className="container mx-auto px-6 text-center">
         <h2 className="text-4xl font-bold mb-12" style={{ color: BFI_BLUE }}>
-          Produk yang Kami Tawarkan
+          Produk Kami
         </h2>
         
         {isLoading && <p>Memuat produk...</p>}
@@ -92,9 +92,9 @@ const Products = () => {
                     )}
                     
                     {/* --- PERUBAHAN DI SINI --- */}
-                    <div className="mt-2">
+                    {/* <div className="mt-2">
                         <a href="/pengajuan" className="font-bold text-blue-600">Ajukan Sekarang &gt;</a>
-                    </div>
+                    </div> */}
                   </div>
                   <div className="absolute -bottom-4 -right-4">
                     <img 
