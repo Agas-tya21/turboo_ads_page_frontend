@@ -129,7 +129,44 @@ const ProdukAdminPage = () => {
       <div className="bg-white p-6 rounded-lg shadow-md mb-8">
         <h2 className="text-2xl font-semibold mb-4">{selectedProduk ? 'Edit Produk' : 'Tambah Produk Baru'}</h2>
         <form onSubmit={handleSubmit} className="space-y-4" key={selectedProduk?.idproduk || 'new-produk-form'}>
-          {/* ... (isi form tetap sama) ... */}
+          <div>
+            <label htmlFor="idproduk" className="block text-sm font-medium text-gray-700">ID Produk</label>
+            <input type="text" name="idproduk" defaultValue={selectedProduk?.idproduk || ''} disabled={!!selectedProduk} className="mt-1 block w-full input-style" required />
+          </div>
+          <div>
+            <label htmlFor="namaproduk" className="block text-sm font-medium text-gray-700">Nama Produk</label>
+            <input type="text" name="namaproduk" defaultValue={selectedProduk?.namaproduk || ''} className="mt-1 block w-full input-style" required />
+          </div>
+          <div>
+            <label htmlFor="keteranganproduk" className="block text-sm font-medium text-gray-700">Keterangan</label>
+            <textarea name="keteranganproduk" defaultValue={selectedProduk?.keteranganproduk || ''} className="mt-1 block w-full input-style" rows={3}></textarea>
+          </div>
+          <div>
+            <label htmlFor="file" className="block text-sm font-medium text-gray-700">Unggah Gambar</label>
+            <input 
+              type="file" 
+              name="file" 
+              accept="image/*"
+              onChange={(e) => e.target.files && setSelectedFile(e.target.files[0])} 
+              className="mt-1 block w-full file-input-style" 
+            />
+            {(selectedFile || (selectedProduk && isValidUrl(selectedProduk.gambarproduk))) && (
+              <div className="mt-4">
+                <p className="text-sm font-medium text-gray-600">Preview:</p>
+                <img 
+                  src={selectedFile ? URL.createObjectURL(selectedFile) : selectedProduk?.gambarproduk} 
+                  alt="Preview" 
+                  className="mt-2 w-32 h-32 object-cover rounded-md border"
+                />
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-4">
+            <button type="submit" disabled={isSubmitting} className="btn-primary">
+              {isSubmitting ? 'Menyimpan...' : (selectedProduk ? 'Update' : 'Simpan')}
+            </button>
+            {selectedProduk && <button type="button" onClick={clearForm} className="btn-secondary">Batal</button>}
+          </div>
         </form>
       </div>
 
