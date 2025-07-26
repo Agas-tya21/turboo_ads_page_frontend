@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, FormEvent } from 'react';
 import apiConfig from '@/config/api';
+import fetchWithAuth from '@/utils/apiClient'; // Impor utilitas
 
-// Tipe data
+// ... (Tipe data tetap sama) ...
 interface Produk {
   idproduk: string;
   namaproduk: string;
@@ -15,6 +16,7 @@ interface JenisJaminan {
   produk: Produk | null;
 }
 
+
 const JenisJaminanAdminPage = () => {
   const [jaminanList, setJaminanList] = useState<JenisJaminan[]>([]);
   const [produkList, setProdukList] = useState<Produk[]>([]);
@@ -24,14 +26,14 @@ const JenisJaminanAdminPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch data
   const fetchData = async () => {
     setIsLoading(true);
     setError(null);
     try {
+      // Gunakan fetchWithAuth
       const [jaminanRes, produkRes] = await Promise.all([
-        fetch(`${apiConfig.baseURL}/jenisjaminan`),
-        fetch(`${apiConfig.baseURL}/produk`),
+        fetchWithAuth(`${apiConfig.baseURL}/jenisjaminan`),
+        fetchWithAuth(`${apiConfig.baseURL}/produk`),
       ]);
       if (!jaminanRes.ok) throw new Error('Gagal mengambil data jenis jaminan');
       if (!produkRes.ok) throw new Error('Gagal mengambil data produk');
@@ -52,12 +54,10 @@ const JenisJaminanAdminPage = () => {
     fetchData();
   }, []);
   
-  // Set selectedProdukId saat mode edit
   useEffect(() => {
     setSelectedProdukId(selectedJaminan?.produk?.idproduk || '');
   }, [selectedJaminan]);
 
-  // Handle Submit
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -66,7 +66,7 @@ const JenisJaminanAdminPage = () => {
     const form = e.currentTarget;
     const isUpdating = !!selectedJaminan;
 
-    const jaminanData: Partial<JenisJaminan> = { // Menggunakan Partial agar idjaminan opsional
+    const jaminanData: Partial<JenisJaminan> = {
       namajaminan: (form.elements.namedItem('namajaminan') as HTMLInputElement).value,
       produk: selectedProdukId ? { idproduk: selectedProdukId, namaproduk: '' } : null,
     };
@@ -79,9 +79,9 @@ const JenisJaminanAdminPage = () => {
     const method = isUpdating ? 'PUT' : 'POST';
 
     try {
-      const response = await fetch(url, {
+      // Gunakan fetchWithAuth
+      const response = await fetchWithAuth(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(jaminanData),
       });
       if (!response.ok) {
@@ -97,11 +97,11 @@ const JenisJaminanAdminPage = () => {
     }
   };
 
-  // Handle Delete
   const handleDelete = async (id: string) => {
     if (!confirm('Yakin ingin menghapus jenis jaminan ini?')) return;
     try {
-      const response = await fetch(`${apiConfig.baseURL}/jenisjaminan/${id}`, { method: 'DELETE' });
+      // Gunakan fetchWithAuth
+      const response = await fetchWithAuth(`${apiConfig.baseURL}/jenisjaminan/${id}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Gagal menghapus data');
       fetchData();
     } catch (err: unknown) {
@@ -115,7 +115,8 @@ const JenisJaminanAdminPage = () => {
     const form = document.querySelector('form');
     if (form) form.reset();
   };
-
+  
+  // ... (sisa kode JSX tidak berubah) ...
   return (
     <div className="container mx-auto p-8 font-sans">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Kelola Jenis Jaminan</h1>
@@ -188,5 +189,4 @@ const JenisJaminanAdminPage = () => {
     </div>
   );
 };
-
 export default JenisJaminanAdminPage;

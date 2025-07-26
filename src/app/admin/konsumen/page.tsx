@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import apiConfig from '@/config/api';
+import fetchWithAuth from '@/utils/apiClient'; // 1. Impor fetchWithAuth
 
-// Tipe data
+// ... (Tipe data tetap sama) ...
 interface Status {
   idstatus: string;
   namastatus: string;
@@ -22,6 +23,7 @@ const statusOrder: { [key: string]: number } = {
   'BARU': 1, 'PROSES': 2, 'NORESPON': 3, 'SETUJU': 4, 'TOLAK': 5,
 };
 
+
 const KonsumenAdminPage = () => {
   const [konsumenList, setKonsumenList] = useState<Konsumen[]>([]);
   const [statusList, setStatusList] = useState<Status[]>([]);
@@ -29,7 +31,6 @@ const KonsumenAdminPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [updateMessage, setUpdateMessage] = useState<string | null>(null);
   
-  // State baru untuk filter
   const [selectedStatusId, setSelectedStatusId] = useState<string>('ALL');
   
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -37,14 +38,14 @@ const KonsumenAdminPage = () => {
   const fetchData = async (isInitialLoad = false) => {
     if (isInitialLoad) setIsLoading(true);
     try {
-      // URL dinamis berdasarkan filter yang dipilih
       const konsumenUrl = selectedStatusId === 'ALL'
         ? `${apiConfig.baseURL}/konsumen`
         : `${apiConfig.baseURL}/konsumen/status/${selectedStatusId}`;
 
+      // 2. Ganti fetch dengan fetchWithAuth
       const [konsumenRes, statusRes] = await Promise.all([
-        fetch(konsumenUrl),
-        fetch(`${apiConfig.baseURL}/status`),
+        fetchWithAuth(konsumenUrl),
+        fetchWithAuth(`${apiConfig.baseURL}/status`),
       ]);
 
       if (!konsumenRes.ok) throw new Error('Gagal mengambil data konsumen');
@@ -83,7 +84,7 @@ const KonsumenAdminPage = () => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [selectedStatusId]); // Jalankan ulang efek ini saat filter berubah
+  }, [selectedStatusId]);
 
   const handleStatusChange = async (idkonsumen: string, newStatusId: string) => {
     const konsumenToUpdate = konsumenList.find(k => k.idkonsumen === idkonsumen);
@@ -103,9 +104,9 @@ const KonsumenAdminPage = () => {
     setKonsumenList(updatedList);
 
     try {
-      const response = await fetch(`${apiConfig.baseURL}/konsumen/${idkonsumen}`, {
+      // 3. Ganti fetch dengan fetchWithAuth
+      const response = await fetchWithAuth(`${apiConfig.baseURL}/konsumen/${idkonsumen}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...konsumenToUpdate, status: { idstatus: newStatusId } }),
       });
 
@@ -120,6 +121,7 @@ const KonsumenAdminPage = () => {
     }
   };
 
+  // ... (sisa kode JSX tidak berubah) ...
   return (
     <div className="container mx-auto p-8 font-sans">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Data Pengajuan Konsumen</h1>

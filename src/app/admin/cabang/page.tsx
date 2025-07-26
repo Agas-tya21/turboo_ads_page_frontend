@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, FormEvent } from 'react';
 import apiConfig from '@/config/api';
+import fetchWithAuth from '@/utils/apiClient'; // Impor utilitas baru
 
 // Tipe data untuk Cabang
 interface Cabang {
@@ -20,7 +21,8 @@ const CabangAdminPage = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${apiConfig.baseURL}/cabang`);
+      // Menggunakan fetchWithAuth
+      const response = await fetchWithAuth(`${apiConfig.baseURL}/cabang`);
       if (!response.ok) throw new Error('Gagal mengambil data cabang');
       const data = await response.json();
       setCabangList(data);
@@ -56,9 +58,9 @@ const CabangAdminPage = () => {
     }
 
     try {
-      const response = await fetch(url, {
+      // Menggunakan fetchWithAuth
+      const response = await fetchWithAuth(url, {
         method: method,
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cabangData),
       });
       if (!response.ok) throw new Error('Gagal menyimpan data');
@@ -74,7 +76,8 @@ const CabangAdminPage = () => {
   const handleDelete = async (id: string) => {
     if (!confirm('Apakah Anda yakin ingin menghapus cabang ini?')) return;
     try {
-      const response = await fetch(`${apiConfig.baseURL}/cabang/${id}`, { method: 'DELETE' });
+      // Menggunakan fetchWithAuth
+      const response = await fetchWithAuth(`${apiConfig.baseURL}/cabang/${id}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Gagal menghapus data');
       fetchCabang();
     } catch (err: unknown) {

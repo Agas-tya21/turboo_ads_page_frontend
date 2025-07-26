@@ -13,14 +13,11 @@ export default function AdminLayout({
   const pathname = usePathname();
 
   useEffect(() => {
-    // --- PERUBAHAN DI SINI ---
-    // Periksa status login DAN keberadaan username (usn)
-    const isLoggedIn = sessionStorage.getItem('isAdminLoggedIn') === 'true';
-    const user = sessionStorage.getItem('usn');
+    // Periksa keberadaan token JWT
+    const token = sessionStorage.getItem('jwt');
 
-    // Jika salah satu kondisi tidak terpenuhi (belum login ATAU tidak ada usn)
-    // dan pengguna tidak sedang di halaman login, paksa kembali ke login.
-    if ((!isLoggedIn || !user) && pathname !== '/admin/login') {
+    // Jika tidak ada token dan pengguna tidak di halaman login, redirect
+    if (!token && pathname !== '/admin/login') {
       router.replace('/admin/login');
     }
   }, [pathname, router]);

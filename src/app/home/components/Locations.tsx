@@ -44,10 +44,10 @@ const Locations = () => {
   return (
     <section className="py-20 bg-50" style={{ color: BFI_BLUE }}>
       <div className="container mx-auto px-6 text-center">
-        <h2 className="text-4xl font-bold text-blue-800 mb-2" style={{ color: BFI_BLUE }}>Turboo Memiliki Lebih dari {cabangList.length > 0 ? cabangList.length : '...'} Lokasi Pelayanan Tersebar di Indonesia</h2>
+        {/* Menggunakan style inline untuk konsistensi warna */}
+        <h2 className="text-4xl font-bold mb-2" style={{ color: BFI_BLUE }}>Turboo Memiliki Lebih dari {cabangList.length > 0 ? cabangList.length : '...'} Lokasi Pelayanan Tersebar di Indonesia</h2>
         <p className="text-lg text-gray-600 mb-8">Temukan cabang atau POS Turboo terdekat dengan Anda</p>
         
-        {/* --- PERUBAHAN UTAMA DI SINI --- */}
         <div className="relative mb-8 p-4 h-[500px]">
           {!isLoading && <Map cabangList={cabangList} />}
         </div>

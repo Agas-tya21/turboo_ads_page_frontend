@@ -9,7 +9,8 @@ const AdminNavbar = () => {
 
   // Fungsi untuk menangani logout
   const handleLogout = () => {
-    sessionStorage.removeItem('isAdminLoggedIn');
+    // Hapus semua data sesi terkait admin
+    sessionStorage.removeItem('jwt');
     sessionStorage.removeItem('usn');
     router.push('/admin/login');
   };

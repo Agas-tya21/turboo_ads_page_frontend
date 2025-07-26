@@ -17,18 +17,18 @@ const AdminLoginPage = () => {
     setError(null);
 
     try {
-      const response = await fetch(`${apiConfig.baseURL}/admin/login`, {
+      // Menggunakan endpoint autentikasi baru
+      const response = await fetch(`${apiConfig.baseURL}/authenticate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usn, password }),
+        body: JSON.stringify({ username: usn, password }),
       });
 
       if (response.ok) {
-        const adminData = await response.json();
-        // --- PERUBAHAN DI SINI ---
-        // Simpan status login dan juga username (usn)
-        sessionStorage.setItem('isAdminLoggedIn', 'true');
-        sessionStorage.setItem('usn', adminData.usn); 
+        const data = await response.json();
+        // Simpan token JWT yang diterima
+        sessionStorage.setItem('jwt', data.jwt);
+        sessionStorage.setItem('usn', usn); // Simpan username untuk tampilan
         router.push('/admin');
       } else {
         setError('Username atau password salah.');

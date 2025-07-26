@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, FormEvent } from 'react';
 import apiConfig from '@/config/api';
+import fetchWithAuth from '@/utils/apiClient'; // Impor utilitas
 
 interface Status {
   idstatus: string;
@@ -17,7 +18,8 @@ const StatusAdminPage = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${apiConfig.baseURL}/status`);
+      // Gunakan fetchWithAuth
+      const response = await fetchWithAuth(`${apiConfig.baseURL}/status`);
       if (!response.ok) throw new Error('Gagal mengambil data status');
       setStatusList(await response.json());
     } catch (err) {
@@ -42,9 +44,9 @@ const StatusAdminPage = () => {
     };
 
     try {
-      const response = await fetch(`${apiConfig.baseURL}/status`, {
+      // Gunakan fetchWithAuth
+      const response = await fetchWithAuth(`${apiConfig.baseURL}/status`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(statusData),
       });
       if (!response.ok) throw new Error('Gagal menyimpan status');
@@ -60,13 +62,15 @@ const StatusAdminPage = () => {
   const handleDelete = async (id: string) => {
     if (!confirm('Yakin ingin menghapus status ini?')) return;
     try {
-      await fetch(`${apiConfig.baseURL}/status/${id}`, { method: 'DELETE' });
+      // Gunakan fetchWithAuth
+      await fetchWithAuth(`${apiConfig.baseURL}/status/${id}`, { method: 'DELETE' });
       fetchData();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal menghapus data');
     }
   };
-
+  
+  // ... (sisa kode JSX tidak berubah) ...
   return (
     <div className="container mx-auto p-8 font-sans">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Kelola Status Pengajuan</h1>
@@ -123,5 +127,4 @@ const StatusAdminPage = () => {
     </div>
   );
 };
-
 export default StatusAdminPage;
