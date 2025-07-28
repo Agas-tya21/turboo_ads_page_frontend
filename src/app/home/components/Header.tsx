@@ -27,7 +27,6 @@ const Header = () => {
           <Link href="/home#produk-kami" className="flex items-center gap-1 hover:opacity-80">
             Produk
           </Link>
-          <Link href="/promo" className="hover:opacity-80">Promo</Link>
         </nav>
 
         {/* Tombol Hamburger untuk Mobile */}
@@ -54,9 +53,6 @@ const Header = () => {
           <nav className="flex flex-col p-4 space-y-2">
             <Link href="/home#produk-kami" className="text-left p-2 rounded hover:bg-gray-100" onClick={closeMobileMenu}>
               Produk
-            </Link>
-            <Link href="/promo" className="p-2 rounded hover:bg-gray-100" onClick={closeMobileMenu}>
-                Promo
             </Link>
           </nav>
         </div>

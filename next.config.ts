@@ -15,6 +15,13 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**",
       },
+      {
+        // TAMBAHKAN BLOK INI
+        protocol: "http",
+        hostname: "31.97.220.143",
+        port: "9090",
+        pathname: "/**",
+      },
     ],
   },
 };
